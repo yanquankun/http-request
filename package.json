@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "前端通用http请求封装",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -18,11 +18,16 @@
     "request",
     "fetch"
   ],
+  "files": [
+    "dist",
+    "README"
+  ],
   "author": "Mint (yanquankun)",
   "license": "LICENSE",
   "private": false,
   "devDependencies": {
     "@types/react": "^19.1.0",
-    "react": "^17.0.2"
+    "react": "^17.0.2",
+    "typescript": "^5.0.0"
   }
 }
