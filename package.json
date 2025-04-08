@@ -1,0 +1,24 @@
+{
+  "name": "@vexjs/http-request",
+  "version": "1.0.0",
+  "description": "前端通用http请求封装",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yanquankun/http-request.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yanquankun/http-request/issues"
+  },
+  "homepage": "https://github.com/yanquankun/http-request/blob/master/README.md",
+  "keywords": [
+    "http",
+    "request",
+    "fetch"
+  ],
+  "author": "Mint (yanquankun)",
+  "license": "LICENSE",
+  "private": false
+}
