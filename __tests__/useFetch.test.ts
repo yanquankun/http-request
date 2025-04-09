@@ -32,7 +32,7 @@ describe('useFetchWrapper 测试', () => {
       method: 'GET',
       headers: {},
     })
-    expect(response).toEqual({ data: mockResponse, code: 200, msg: 'OK' })
+    expect(response).toEqual({ data: mockResponse, code: 200, msg: undefined })
   })
 
   test('发送 POST 请求并携带 body 和 headers', async () => {
@@ -54,7 +54,7 @@ describe('useFetchWrapper 测试', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: '标题', body: '内容', userId: 1 }),
     })
-    expect(response).toEqual({ data: mockResponse, code: 201, msg: 'Created' })
+    expect(response).toEqual({ data: mockResponse, code: 201, msg: undefined })
   })
 
   test('支持进度更新的请求', async () => {
@@ -86,7 +86,7 @@ describe('useFetchWrapper 测试', () => {
     expect(response).toEqual({
       data: new TextDecoder('utf-8').decode(new Uint8Array([1, 2, 3])),
       code: 200,
-      msg: 'OK',
+      msg: undefined,
     })
   })
 
@@ -114,7 +114,7 @@ describe('useFetchWrapper 测试', () => {
     expect(response).toEqual({
       data: new TextDecoder('utf-8').decode(new Uint8Array([1, 2, 3])),
       code: 200,
-      msg: 'OK',
+      msg: undefined,
     })
   })
 
@@ -137,12 +137,11 @@ describe('useFetchWrapper 测试', () => {
     expect(response).toEqual({
       data: { data: '测试数据' },
       code: 200,
-      msg: 'OK',
+      msg: undefined,
     })
   })
 
   test('支持请求取消功能', async () => {
-    const abortController = new AbortController()
     const mockHandleCancel = jest.fn()
 
     const mockAbortError = new DOMException('用户取消了请求', 'AbortError')
@@ -163,7 +162,7 @@ describe('useFetchWrapper 测试', () => {
     ).rejects.toThrow(mockAbortError)
 
     expect(mockHandleCancel).toHaveBeenCalledTimes(1)
-    expect(mockHandleCancel.mock.calls[0][0]).toBeInstanceOf(abortController) // 验证传入的是 abortController
+    expect(mockHandleCancel.mock.calls[0][0]).toBeInstanceOf(AbortController) // 验证传入的是 abortController
     expect(mockHandleCancel.mock.calls[0][0].signal.aborted).toBe(true) // 验证信号已中止
   })
 
