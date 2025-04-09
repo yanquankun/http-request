@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "前端通用http请求封装",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest --config=jest.config.ts"
   },
   "repository": {
@@ -20,7 +20,7 @@
     "fetch"
   ],
   "files": [
-    "dist",
+    "http-request",
     "README"
   ],
   "author": "Mint (yanquankun)",
