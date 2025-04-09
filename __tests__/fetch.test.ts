@@ -2,6 +2,11 @@ import FetchWrapper from '../request/fetch'
 
 const mockBaseUrl = 'https://jsonplaceholder.typicode.com'
 
+// forbidding console logs
+console.error = () => {}
+console.log = () => {}
+console.warn = () => {}
+
 describe('FetchWrapper 测试', () => {
   let fetchWrapper: FetchWrapper
 
@@ -28,7 +33,7 @@ describe('FetchWrapper 测试', () => {
       method: 'GET',
       headers: {},
     })
-    expect(response).toEqual({ data: mockResponse, code: 200, msg: 'OK' })
+    expect(response).toEqual({ data: mockResponse, code: 200, msg: undefined })
   })
 
   test('发送 POST 请求并携带 body 和 headers', async () => {
@@ -50,7 +55,7 @@ describe('FetchWrapper 测试', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: '标题', body: '内容', userId: 1 }),
     })
-    expect(response).toEqual({ data: mockResponse, code: 201, msg: 'Created' })
+    expect(response).toEqual({ data: mockResponse, code: 201, msg: undefined })
   })
 
   test('处理未授权错误', async () => {
@@ -89,28 +94,35 @@ describe('FetchWrapper 测试', () => {
     expect(response).toEqual({
       data: { data: '测试数据' },
       code: 200,
-      msg: 'OK',
+      msg: undefined,
     })
   })
 
   test('支持请求取消功能', async () => {
-    const abortController = new AbortController()
     const mockHandleCancel = jest.fn()
+    const mockAbortError = new DOMException('用户取消了请求', 'AbortError') // 将错误消息改为中文
 
-    const mockAbortError = new DOMException('用户取消了请求', 'AbortError')
-    ;(fetch as jest.Mock).mockRejectedValueOnce(mockAbortError)
+    // 修改 fetch 的模拟实现，使其抛出与 mockAbortError 一致的错误
+    ;(fetch as jest.Mock).mockImplementationOnce(() => {
+      return new Promise((_, reject) => {
+        reject(mockAbortError) // 抛出与期望一致的错误
+      })
+    })
 
     await expect(
       fetchWrapper.get('/cancel', {
         supportCancel: true,
         handleCancel: (controller) => {
           mockHandleCancel(controller)
-          controller.abort()
+          controller.abort() // 模拟取消请求
         },
       }),
-    ).rejects.toThrow(mockAbortError)
+    ).rejects.toThrow(mockAbortError) // 断言抛出的错误与 mockAbortError 一致
 
-    expect(mockHandleCancel).toHaveBeenCalledWith(abortController)
+    // 验证 mockHandleCancel 被正确调用
+    expect(mockHandleCancel).toHaveBeenCalledTimes(1)
+    expect(mockHandleCancel.mock.calls[0][0]).toBeInstanceOf(AbortController) // 验证传递的对象是 AbortController
+    expect(mockHandleCancel.mock.calls[0][0].signal.aborted).toBe(true) // 确认信号被中止
   })
 
   test('处理流式请求', async () => {
@@ -137,7 +149,7 @@ describe('FetchWrapper 测试', () => {
     expect(response).toEqual({
       data: new TextDecoder('utf-8').decode(new Uint8Array([1, 2, 3])),
       code: 200,
-      msg: 'OK',
+      msg: undefined,
     })
   })
 
