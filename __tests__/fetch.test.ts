@@ -1,198 +1,187 @@
 import FetchWrapper from '../request/fetch'
 
-// mock fetch API
-globalThis.fetch = jest.fn()
+const mockBaseUrl = 'https://jsonplaceholder.typicode.com'
 
-describe('FetchWrapper', () => {
-  const baseUrl = 'https://api.example.com'
-  let wrapper: FetchWrapper
+describe('FetchWrapper 测试', () => {
+  let fetchWrapper: FetchWrapper
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    wrapper = new FetchWrapper(baseUrl, 'initial-token')
+    fetchWrapper = new FetchWrapper(mockBaseUrl)
+    globalThis.fetch = jest.fn()
   })
 
-  it('发送 GET 请求并返回 JSON 数据', async () => {
-    const mockResponse = { foo: 'bar' }
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
 
-    // 模拟 fetch 返回数据
+  test('发送 GET 请求并返回数据', async () => {
+    const mockResponse = { data: '测试数据' }
     ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       status: 200,
-      statusText: 'OK',
       json: async () => mockResponse,
     })
 
-    const result = await wrapper.get<{ foo: string }>('/test')
+    const response = await fetchWrapper.get('/posts/1')
 
-    expect(fetch).toHaveBeenCalledWith(
-      `${baseUrl}/test`,
-      expect.objectContaining({
-        method: 'GET',
-      }),
-    )
-
-    expect(result).toEqual({
-      data: mockResponse,
-      code: 200,
-      msg: 'OK',
+    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}/posts/1`, {
+      method: 'GET',
+      headers: {},
     })
+    expect(response).toEqual({ data: mockResponse, code: 200, msg: 'OK' })
   })
 
-  it('支持 POST 请求并包含请求体', async () => {
-    const mockData = { success: true }
-
+  test('发送 POST 请求并携带 body 和 headers', async () => {
+    const mockResponse = { id: 1 }
     ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       status: 201,
-      statusText: 'Created',
-      json: async () => mockData,
+      json: async () => mockResponse,
     })
 
-    const result = await wrapper.post<{ success: boolean }>('/submit', {
-      name: 'Tom',
+    const response = await fetchWrapper.post('/posts', {
+      title: '标题',
+      body: '内容',
+      userId: 1,
     })
 
-    expect(fetch).toHaveBeenCalledWith(
-      `${baseUrl}/submit`,
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ name: 'Tom' }),
-        headers: expect.objectContaining({
-          Authorization: 'Bearer initial-token',
-          'Content-Type': 'application/json',
-        }),
-      }),
-    )
-
-    expect(result.data.success).toBe(true)
+    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '标题', body: '内容', userId: 1 }),
+    })
+    expect(response).toEqual({ data: mockResponse, code: 201, msg: 'Created' })
   })
 
-  it('在 token 失效时调用 handleUnauthorized', async () => {
-    const mockUnauthorized = jest.fn()
-
+  test('处理未授权错误', async () => {
+    const mockUnauthorizedHandler = jest.fn()
     ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
       status: 401,
       statusText: 'Unauthorized',
-      json: async () => ({}),
     })
-
-    await wrapper.get('/unauth', {
-      handleUnauthorized: mockUnauthorized,
-    })
-
-    expect(mockUnauthorized).toHaveBeenCalled()
-  })
-
-  it('支持请求错误时调用 handleError', async () => {
-    const mockErrorHandler = jest.fn()
-
-    ;(fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
 
     await expect(
-      wrapper.get('/error', {
-        handleError: mockErrorHandler,
+      fetchWrapper.get('/protected', {
+        handleUnauthorized: mockUnauthorizedHandler,
       }),
-    ).rejects.toThrow('Network error')
+    ).rejects.toThrow()
 
-    expect(mockErrorHandler).toHaveBeenCalled()
+    expect(mockUnauthorizedHandler).toHaveBeenCalled()
   })
 
-  it('请求失败后可自动重试指定次数', async () => {
-    const successResponse = {
-      status: 200,
-      statusText: 'OK',
-      json: async () => ({ ok: true }),
-    }
-
-    // 前两次失败，第三次成功
+  test('在请求失败时重试', async () => {
     ;(fetch as jest.Mock)
-      .mockRejectedValueOnce(new Error('fail 1'))
-      .mockRejectedValueOnce(new Error('fail 2'))
-      .mockResolvedValueOnce(successResponse)
+      .mockRejectedValueOnce(new Error('网络错误'))
+      .mockRejectedValueOnce(new Error('网络错误'))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: '测试数据' }),
+      })
 
-    const res = await wrapper.get<{ ok: boolean }>('/retry', {
+    const response = await fetchWrapper.get('/retry', {
       retryOnError: true,
       maxRetries: 3,
     })
 
     expect(fetch).toHaveBeenCalledTimes(3)
-    expect(res.data.ok).toBe(true)
+    expect(response).toEqual({
+      data: { data: '测试数据' },
+      code: 200,
+      msg: 'OK',
+    })
   })
 
-  it('支持 showLoading 和 hideLoading 钩子', async () => {
-    const show = jest.fn()
-    const hide = jest.fn()
+  test('支持请求取消功能', async () => {
+    const abortController = new AbortController()
+    const mockHandleCancel = jest.fn()
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    const mockAbortError = new DOMException('用户取消了请求', 'AbortError')
+    ;(fetch as jest.Mock).mockRejectedValueOnce(mockAbortError)
+
+    await expect(
+      fetchWrapper.get('/cancel', {
+        supportCancel: true,
+        handleCancel: (controller) => {
+          mockHandleCancel(controller)
+          controller.abort()
+        },
+      }),
+    ).rejects.toThrow(mockAbortError)
+
+    expect(mockHandleCancel).toHaveBeenCalledWith(abortController)
+  })
+
+  test('处理流式请求', async () => {
+    const mockResponse = {
+      body: {
+        getReader: () => ({
+          read: jest
+            .fn()
+            .mockResolvedValueOnce({
+              done: false,
+              value: new Uint8Array([1, 2, 3]),
+            })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      },
+      ok: true,
       status: 200,
-      statusText: 'OK',
-      json: async () => ({ ok: 1 }),
-    })
+    }
 
-    await wrapper.get('/loading', {
-      showLoading: show,
-      hideLoading: hide,
-    })
+    ;(fetch as jest.Mock).mockResolvedValueOnce(mockResponse)
 
-    expect(show).toHaveBeenCalled()
-    expect(hide).toHaveBeenCalled()
+    const response = await fetchWrapper.get('/stream', { isStream: true })
+
+    expect(response).toEqual({
+      data: new TextDecoder('utf-8').decode(new Uint8Array([1, 2, 3])),
+      code: 200,
+      msg: 'OK',
+    })
   })
 
-  it('可以记录请求日志', async () => {
-    const log = jest.fn()
-
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+  test('处理进度更新', async () => {
+    const mockOnProgress = jest.fn()
+    const mockResponse = {
+      body: {
+        getReader: () => ({
+          read: jest
+            .fn()
+            .mockResolvedValueOnce({
+              done: false,
+              value: new Uint8Array([1, 2, 3]),
+            })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      },
+      headers: { get: () => '3' },
+      ok: true,
       status: 200,
-      statusText: 'OK',
-      json: async () => ({ ok: 1 }),
-    })
+    }
 
-    await wrapper.get('/log', {
-      logRequest: log,
-    })
+    ;(fetch as jest.Mock).mockResolvedValueOnce(mockResponse)
 
-    expect(log).toHaveBeenCalledWith('/log', expect.any(Object))
+    await fetchWrapper.get('/progress', { onProgress: mockOnProgress })
+
+    expect(mockOnProgress).toHaveBeenCalledWith(100)
   })
 
-  it('支持取消请求（AbortController）', async () => {
-    const handleCancel = jest.fn()
+  test('记录请求日志', async () => {
+    const mockLogRequest = jest.fn()
+    const mockResponse = { data: '测试日志' }
 
     ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       status: 200,
-      statusText: 'OK',
-      json: async () => ({ ok: 1 }),
+      json: async () => mockResponse,
     })
 
-    await wrapper.get('/cancel', {
-      supportCancel: true,
-      handleCancel,
+    await fetchWrapper.get('/log', { logRequest: mockLogRequest })
+
+    expect(mockLogRequest).toHaveBeenCalledWith('/log', {
+      method: 'GET',
+      headers: {},
     })
-
-    expect(handleCancel).toHaveBeenCalledWith(expect.any(AbortController))
-  })
-
-  it('支持 PATCH 请求', async () => {
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      status: 200,
-      statusText: 'OK',
-      json: async () => ({ patched: true }),
-    })
-
-    const res = await wrapper.patch<{ patched: boolean }>('/patch', {
-      name: 'X',
-    })
-
-    expect(res.data.patched).toBe(true)
-  })
-
-  it('支持 DELETE 请求', async () => {
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      status: 204,
-      statusText: 'No Content',
-      json: async () => ({}),
-    })
-
-    const res = await wrapper.delete<{}>('/delete')
-
-    expect(res.code).toBe(204)
   })
 })

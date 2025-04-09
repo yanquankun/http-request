@@ -1,7 +1,6 @@
-import type { Config } from "jest";
+import type { Config } from 'jest'
 
 const config: Config = {
-  testEnvironment: 'jsdom', // 支持 React Hooks 测试
   transform: {
     '^.+\\.tsx?$': 'ts-jest', // 使用 ts-jest 处理 TypeScript 文件
   },
