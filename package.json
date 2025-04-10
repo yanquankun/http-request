@@ -4,7 +4,8 @@
   "description": "前端通用http请求封装",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "jest --config=jest.config.ts"
+    "test": "jest --config=jest.config.ts",
+    "publishCI": "node ./scripts/publish.ts"
   },
   "repository": {
     "type": "git",
