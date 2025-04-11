@@ -1,17 +1,17 @@
-const fs = require('fs')
-const path = require('path')
-const { exec } = require('child_process')
+import { exec } from 'child_process'
+import fs from 'fs'
+import path from 'path'
 
-const VersionType = {
-  Major: 'major',
-  Minor: 'minor',
-  Patch: 'patch',
+export enum VersionType {
+  Major = 'major',
+  Minor = 'minor',
+  Patch = 'patch',
 }
 Object.freeze(VersionType)
 
-const execCommand = (command) => {
+const execCommand = (command: string) => {
   return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, (error: any, stdout: string, stderr: string) => {
       if (error) {
         console.error(`Error: ${error.message}`)
         reject(error)
@@ -25,9 +25,8 @@ const execCommand = (command) => {
   })
 }
 
-module.exports = {
-  VersionType,
-  isVaildVersion: (version) => {
+export default {
+  isVaildVersion: (version: string) => {
     const versionRegex = /^\d+\.\d+\.\d+$/
     return versionRegex.test(version)
   },
@@ -49,7 +48,7 @@ module.exports = {
    * @param {string} version - 版本号
    * @returns {Promise<void>}
    */
-  publish: async (version) => {
+  publish: async (version: string) => {
     // --tag:为发布的包添加一个特定的标签
     // 这个标签可以让用户使用 npm install package@tagname 安装特定版本
     const command = `npm publish --access public --tag ${version}`
@@ -66,7 +65,10 @@ module.exports = {
    * @param {string} version - 版本号
    * @returns {Promise<void>}
    */
-  publishVersion: async (version, type) => {
+  publishVersion: async (
+    version: string,
+    type?: VersionType,
+  ): Promise<string> => {
     let command
 
     switch (type) {
@@ -91,10 +93,12 @@ module.exports = {
     try {
       const result = await execCommand(command)
       console.log(`Version publish result: ${result}`)
-      return result
+      return result as string
     } catch (error) {
       console.error(`Version publish error: ${error}`)
       process.exit(1)
     }
   },
 }
+
+// export const { isVaildVersion, getPkg, publish, publishVersion } = obj

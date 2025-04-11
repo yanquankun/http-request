@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+    "incremental": true,
+    "target": "es2016",
+    "module": "NodeNext",
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["jest", "node"],
+    "declaration": true,
+    "outDir": "./http-request",
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    /** importHelpers将自动导入tslib的polyfill，这需要用户自己安装tslib */
+    "importHelpers": false
+  }
+}

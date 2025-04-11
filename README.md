@@ -32,22 +32,23 @@
 ## `fetch.ts`
 
 ### 简介
+
 `fetch.ts` 提供了一个基于类的封装，用于处理 HTTP 请求。它支持 GET、POST、PUT、DELETE 和 PATCH 请求，并提供了丰富的选项来定制请求行为。
 
 ### 使用方法
 
 ```typescript
-import FetchWrapper from './request/fetch';
+import FetchWrapper from "./request/fetch";
 
-const api = new FetchWrapper('https://api.example.com', 'your-initial-token');
+const api = new FetchWrapper("https://api.example.com", "your-initial-token");
 
 // 发送 GET 请求
-api.get('/endpoint').then(response => {
+api.get("/endpoint").then((response) => {
   console.log(response.data);
 });
 
 // 发送 POST 请求
-api.post('/endpoint', { key: 'value' }).then(response => {
+api.post("/endpoint", { key: "value" }).then((response) => {
   console.log(response.data);
 });
 ```
@@ -57,22 +58,26 @@ api.post('/endpoint', { key: 'value' }).then(response => {
 ## `useFetch.ts`
 
 ### 简介
+
 `useFetch.ts` 提供了一个基于函数的封装，用于处理 HTTP 请求。它支持类似于 `fetch.ts` 的功能，但更适合函数式编程风格。
 
 ### 使用方法
 
 ```typescript
-import useFetchWrapper from './request/useFetch';
+import useFetchWrapper from "./request/useFetch";
 
-const { get, post, put, del, patch } = useFetchWrapper('https://api.example.com', 'your-initial-token');
+const { get, post, put, del, patch } = useFetchWrapper(
+  "https://api.example.com",
+  "your-initial-token"
+);
 
 // 发送 GET 请求
-get('/endpoint').then(response => {
+get("/endpoint").then((response) => {
   console.log(response.data);
 });
 
 // 发送 POST 请求
-post('/endpoint', { key: 'value' }).then(response => {
+post("/endpoint", { key: "value" }).then((response) => {
   console.log(response.data);
 });
 ```
@@ -82,18 +87,24 @@ post('/endpoint', { key: 'value' }).then(response => {
 ## `useReactFetch.ts`
 
 ### 简介
+
 `useReactFetch.ts` 提供了一个基于 React 的自定义 Hook，用于处理 HTTP 请求。它支持状态管理和 React 的生命周期。
+
+`TIP：你需要先安装好react环境再使用`
 
 ### 使用方法
 
 ```typescript
-import useFetchWrapper from './request/useReactFetch';
+import useFetchWrapper from "./request/useReactFetch";
 
 function App() {
-  const { get, post, put, del, patch, setToken } = useFetchWrapper('https://api.example.com', 'your-initial-token');
+  const { get, post, put, del, patch, setToken } = useFetchWrapper(
+    "https://api.example.com",
+    "your-initial-token"
+  );
 
   const fetchData = async () => {
-    const response = await get('/endpoint');
+    const response = await get("/endpoint");
     console.log(response.data);
   };
 
