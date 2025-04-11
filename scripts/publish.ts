@@ -60,7 +60,7 @@ async function publish() {
   }
 
   console.log(`开始发布版本：${version}`)
-  publishUtil.publish(version)
+  await publishUtil.publish(version)
   process.exit(0)
 }
 
