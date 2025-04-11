@@ -21,7 +21,6 @@ export enum TagType {
 const execCommand = (command: string) => {
   return new Promise((resolve, reject) => {
     exec(command, (error: any, stdout: string, stderr: string) => {
-      console.log(error, stdout, stderr)
       if (error) {
         console.error(`Error: ${error.message}`)
         reject(error)
