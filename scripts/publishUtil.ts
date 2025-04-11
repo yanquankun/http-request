@@ -9,9 +9,19 @@ export enum VersionType {
   Custom = 'custom',
 }
 
+export enum TagType {
+  Latest = 'latest',
+  Beta = 'beta',
+  Alpha = 'alpha',
+  Next = 'next',
+  Previous = 'previous',
+  Custom = 'custom',
+}
+
 const execCommand = (command: string) => {
   return new Promise((resolve, reject) => {
     exec(command, (error: any, stdout: string, stderr: string) => {
+      console.log(error, stdout, stderr)
       if (error) {
         console.error(`Error: ${error.message}`)
         reject(error)
@@ -64,10 +74,10 @@ const getPkg = () => {
  * @param {string} version - 版本号
  * @returns {Promise<void>}
  */
-const publish = async (version: string) => {
+const publish = async (version: string, tag: TagType = TagType.Latest) => {
   // --tag:为发布的包添加一个特定的标签
   // 这个标签可以让用户使用 npm install package@tagname 安装特定版本
-  const command = `npm publish --access public --tag ${version}`
+  const command = `npm publish --access public --tag ${tag}`
   try {
     const result = await execCommand(command)
     console.log(`Publish result: ${result}，version: ${version}`)
