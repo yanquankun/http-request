@@ -1,5 +1,5 @@
 import publishUtil from './publishUtil'
-import { VersionType } from './publishUtil'
+import { VersionType, TagType } from './publishUtil'
 import rl from './readline'
 
 const args = process.argv.slice(2)
