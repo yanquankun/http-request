@@ -47,17 +47,21 @@ async function startShellQA() {
 }
 
 async function publish() {
-  if (!publishUtil.isVaildVersion(version)) {
-    console.log('版本号不合法，将进行交互式输入\n')
-    await startShellQA()
+  const isHasPublishHistory = await publishUtil.isHasPublishHistory()
+  if (!isHasPublishHistory) {
+    version = (await publishUtil.getPkg())?.version ?? '1.0.0'
   } else {
-    await publishUtil.publishVersion(VersionType.Custom, version)
+    if (!publishUtil.isVaildVersion(version)) {
+      console.log('版本号不合法，将进行交互式输入\n')
+      await startShellQA()
+    } else {
+      await publishUtil.publishVersion(VersionType.Custom, version)
+    }
   }
 
   console.log(`开始发布版本：${version}`)
-  // publishUtil.publish(version).then(() => {
-  //   console.log(`发布完成，版本号：${version}`)
-  // })
+  publishUtil.publish(version)
+  process.exit(0)
 }
 
 publish()

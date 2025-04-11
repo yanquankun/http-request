@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "jest --config=jest.config.ts",
-    "publishCI": "ts-node scripts/publish.ts"
+    "publishCI": "pnpm build && ts-node scripts/publish.ts"
   },
   "repository": {
     "type": "git",

@@ -25,13 +25,29 @@ const execCommand = (command: string) => {
   })
 }
 
+const isHasPublishHistory = (
+  packageName: string = '@vexjs/http-request',
+): Promise<boolean> => {
+  return new Promise((resolve) => {
+    exec(
+      `npm view ${packageName} version`,
+      (error: any, stdout: string, stderr: string) => {
+        if (error) {
+          resolve(false)
+        }
+        resolve(true)
+      },
+    )
+  })
+}
+
 const isVaildVersion = (version: string) => {
   const versionRegex = /^\d+\.\d+\.\d+$/
   return versionRegex.test(version)
 }
 
 const getPkg = () => {
-  let pkg = {}
+  let pkg
   try {
     pkg = JSON.parse(
       fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'),
@@ -54,7 +70,7 @@ const publish = async (version: string) => {
   const command = `npm publish --access public --tag ${version}`
   try {
     const result = await execCommand(command)
-    console.log(`Publish result: ${result}`)
+    console.log(`Publish result: ${result}，version: ${version}`)
   } catch (error) {
     console.error(`Publish error: ${error}`)
     process.exit(1)
@@ -107,4 +123,5 @@ export default {
   execCommand,
   publish,
   publishVersion,
+  isHasPublishHistory,
 }
